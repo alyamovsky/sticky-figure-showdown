@@ -1,15 +1,16 @@
 package com.alyamovsky.sfs;
 
+import com.alyamovsky.sfs.resource.Constants;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import com.alyamovsky.sfs.SFS;
 
 // Please note that on macOS your application needs to be started with the -XstartOnFirstThread JVM argument
 public class DesktopLauncher {
-	public static void main (String[] arg) {
-		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
-		config.setForegroundFPS(60);
-		config.setTitle("Sticky Figure Showdown");
-		new Lwjgl3Application(new SFS(), config);
-	}
+    public static void main(String[] arg) {
+        Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
+        config.setForegroundFPS(60);
+        config.setTitle(Constants.GAME_TITLE);
+        config.setWindowedMode(Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
+        new Lwjgl3Application(new SFS(), config);
+    }
 }
