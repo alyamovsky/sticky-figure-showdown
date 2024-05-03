@@ -1,13 +1,14 @@
 package com.alyamovsky.sfs;
 
-import com.alyamovsky.sfs.resources.Assets;
-import com.badlogic.gdx.ApplicationAdapter;
+import com.alyamovsky.sfs.resource.Assets;
+import com.alyamovsky.sfs.screen.GameScreen;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.ScreenUtils;
 
-public class SFS extends ApplicationAdapter {
+public class SFS extends Game {
     public SpriteBatch batch;
     public Assets assets;
+    public GameScreen gameScreen;
 
     @Override
     public void create() {
@@ -16,13 +17,14 @@ public class SFS extends ApplicationAdapter {
 
         assets.load();
         assets.manager.finishLoading();
+
+        gameScreen = new GameScreen(this);
+        setScreen(gameScreen);
     }
 
     @Override
     public void render() {
-        ScreenUtils.clear(1, 0, 0, 1);
-        batch.begin();
-        batch.end();
+        super.render();
     }
 
     @Override

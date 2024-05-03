@@ -1,4 +1,4 @@
-package com.alyamovsky.sfs.resources;
+package com.alyamovsky.sfs.resource;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
