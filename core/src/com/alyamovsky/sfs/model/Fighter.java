@@ -124,6 +124,29 @@ public class Fighter {
         } else {
             facing = Facing.LEFT;
         }
+
+        if (state == State.WALK) {
+            position.x += movementDirection.x * MOVEMENT_SPEED * deltaTime;
+            position.y += movementDirection.y * MOVEMENT_SPEED * deltaTime;
+        }
+    }
+
+    public void move(Direction direction) {
+        movementDirection.set(direction.getValue());
+        if (state != State.WALK) {
+            changeState(State.WALK);
+        }
+    }
+
+    public void stop(Direction direction) {
+        Vector2 dirValue = direction.getValue();
+        movementDirection.x = (movementDirection.x == dirValue.x) ? 0 : movementDirection.x;
+        movementDirection.y = (movementDirection.y == dirValue.y) ? 0 : movementDirection.y;
+    }
+
+    private void changeState(State newState) {
+        state = newState;
+        stateTime = 0f;
     }
 
     private TextureRegion @NotNull [] getAnimationFrames(Texture spriteSheet) {
@@ -165,6 +188,23 @@ public class Fighter {
         }
 
         public int getValue() {
+            return value;
+        }
+    }
+
+    public enum Direction {
+        LEFT(new Vector2(-1, 0)),
+        RIGHT(new Vector2(1, 0)),
+        UP(new Vector2(0, 1)),
+        DOWN(new Vector2(0, -1));
+
+        private final Vector2 value;
+
+        Direction(Vector2 value) {
+            this.value = value;
+        }
+
+        public Vector2 getValue() {
             return value;
         }
     }

@@ -4,6 +4,8 @@ import com.alyamovsky.sfs.SFS;
 import com.alyamovsky.sfs.model.Fighter;
 import com.alyamovsky.sfs.resource.Assets;
 import com.alyamovsky.sfs.resource.Constants;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -11,7 +13,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-public class GameScreen implements Screen {
+public class GameScreen implements Screen, InputProcessor {
     private static final float PLAYER_1_START_POSITION_X = 16f;
     private static final float PLAYER_1_START_POSITION_Y = 15f;
     private static final float PLAYER_2_START_POSITION_X = 51f;
@@ -51,6 +53,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(this);
     }
 
     @Override
@@ -95,5 +98,74 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        if (keycode == com.badlogic.gdx.Input.Keys.W) {
+            player1.move(Fighter.Direction.UP);
+        } else if (keycode == com.badlogic.gdx.Input.Keys.S) {
+            player1.move(Fighter.Direction.DOWN);
+        }
+
+        if (keycode == com.badlogic.gdx.Input.Keys.A) {
+            player1.move(Fighter.Direction.LEFT);
+        } else if (keycode == com.badlogic.gdx.Input.Keys.D) {
+            player1.move(Fighter.Direction.RIGHT);
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        if (keycode == com.badlogic.gdx.Input.Keys.W) {
+            player1.stop(Fighter.Direction.UP);
+        } else if (keycode == com.badlogic.gdx.Input.Keys.S) {
+            player1.stop(Fighter.Direction.DOWN);
+        }
+
+        if (keycode == com.badlogic.gdx.Input.Keys.A) {
+            player1.stop(Fighter.Direction.LEFT);
+        } else if (keycode == com.badlogic.gdx.Input.Keys.D) {
+            player1.stop(Fighter.Direction.RIGHT);
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(float amountX, float amountY) {
+        return false;
     }
 }
