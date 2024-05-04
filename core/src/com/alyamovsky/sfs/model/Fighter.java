@@ -61,6 +61,7 @@ public class Fighter {
         movementDirection.setZero();
         life = MAX_LIFE;
         madeContact = false;
+        facing = Facing.RIGHT;
     }
 
     /**
@@ -97,27 +98,38 @@ public class Fighter {
 
         spriteBatch.setColor(color);
         spriteBatch.draw(currentFrame,
-                         position.x,
-                         position.y,
-                         currentFrame.getRegionWidth() * Constants.WORLD_SCALE,
-                         currentFrame.getRegionHeight() * Constants.WORLD_SCALE
+                position.x,
+                position.y,
+                currentFrame.getRegionWidth() * 0.5f * Constants.WORLD_SCALE,
+                0,
+                currentFrame.getRegionWidth() * Constants.WORLD_SCALE,
+                currentFrame.getRegionHeight() * Constants.WORLD_SCALE,
+                facing.getValue(),
+                1,
+                0
         );
         spriteBatch.setColor(Color.WHITE);
     }
 
-    public void update(float deltaTime) {
+    public void update(float deltaTime, Fighter opponent) {
         stateTime += deltaTime;
+        if (deltaTime <= 0) {
+            return;
+        }
 
-        if (deltaTime > 0) {
-            renderState = state;
-            renderStateTime = stateTime;
+        renderState = state;
+        renderStateTime = stateTime;
+        if (opponent.position.x > position.x) {
+            facing = Facing.RIGHT;
+        } else {
+            facing = Facing.LEFT;
         }
     }
 
     private TextureRegion @NotNull [] getAnimationFrames(Texture spriteSheet) {
         TextureRegion[][] tmp = TextureRegion.split(spriteSheet,
-                                                    spriteSheet.getWidth() / FRAME_COLUMNS,
-                                                    spriteSheet.getHeight() / FRAME_ROWS
+                spriteSheet.getWidth() / FRAME_COLUMNS,
+                spriteSheet.getHeight() / FRAME_ROWS
         );
         TextureRegion[] frames = new TextureRegion[FRAME_ROWS * FRAME_COLUMNS];
         int index = 0;
@@ -143,7 +155,17 @@ public class Fighter {
     }
 
     private enum Facing {
-        LEFT,
-        RIGHT,
+        LEFT(-1),
+        RIGHT(1);
+
+        private final int value;
+
+        Facing(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
     }
 }

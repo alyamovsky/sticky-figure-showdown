@@ -26,8 +26,7 @@ public class GameScreen implements Screen {
 
     public GameScreen(SFS sfs) {
         this.sfs = sfs;
-        this.viewport = new ExtendViewport(
-                Constants.WORLD_WIDTH,
+        this.viewport = new ExtendViewport(Constants.WORLD_WIDTH,
                 Constants.WORLD_HEIGHT * 0.75f,
                 Constants.WORLD_WIDTH,
                 Constants.WORLD_HEIGHT
@@ -46,8 +45,8 @@ public class GameScreen implements Screen {
     }
 
     public void update(float delta) {
-        player1.update(delta);
-        player2.update(delta);
+        player1.update(delta, player2);
+        player2.update(delta, player1);
     }
 
     @Override
@@ -62,8 +61,7 @@ public class GameScreen implements Screen {
 
         sfs.batch.setProjectionMatrix(viewport.getCamera().combined);
         sfs.batch.begin();
-        sfs.batch.draw(
-                backgroundTexture,
+        sfs.batch.draw(backgroundTexture,
                 0,
                 0,
                 backgroundTexture.getWidth() * Constants.WORLD_SCALE,
