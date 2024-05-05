@@ -18,9 +18,11 @@ public class Fighter {
     private static final float MAX_LIFE = 100f;
     private static final float HIT_STRENGTH = 5f;
     private static final float BLOCK_DAMAGE_FACTOR = 0.2f;
+    private static final float FIGHTER_CONTACT_DISTANCE_X = 7.5f;
+    private static final float FIGHTER_CONTACT_DISTANCE_Y = 1.5f;
 
-    private String name;
-    private Color color;
+    private final String name;
+    private final Color color;
     private State state;
     private float stateTime;
     private State renderState;
@@ -29,16 +31,16 @@ public class Fighter {
     private final Vector2 movementDirection = new Vector2();
     private float life;
     private Facing facing;
-    private boolean madeContact;
+    private boolean madeContact = false;
 
-    private Animation<TextureRegion> blockAnimation;
-    private Animation<TextureRegion> hurtAnimation;
-    private Animation<TextureRegion> idleAnimation;
-    private Animation<TextureRegion> kickAnimation;
-    private Animation<TextureRegion> loseAnimation;
-    private Animation<TextureRegion> punchAnimation;
-    private Animation<TextureRegion> walkAnimation;
-    private Animation<TextureRegion> winAnimation;
+    private final Animation<TextureRegion> blockAnimation;
+    private final Animation<TextureRegion> hurtAnimation;
+    private final Animation<TextureRegion> idleAnimation;
+    private final Animation<TextureRegion> kickAnimation;
+    private final Animation<TextureRegion> loseAnimation;
+    private final Animation<TextureRegion> punchAnimation;
+    private final Animation<TextureRegion> walkAnimation;
+    private final Animation<TextureRegion> winAnimation;
 
     public Fighter(AssetManager assetManager, String name, Color color) {
         this.name = name;
@@ -82,7 +84,7 @@ public class Fighter {
             case KICK:
                 currentFrame = kickAnimation.getKeyFrame(renderStateTime, false);
                 break;
-            case LOSE:
+            case LOST:
                 currentFrame = loseAnimation.getKeyFrame(renderStateTime, false);
                 break;
             case PUNCH:
@@ -91,8 +93,8 @@ public class Fighter {
             case WALK:
                 currentFrame = walkAnimation.getKeyFrame(renderStateTime, true);
                 break;
-            case WIN:
-                currentFrame = winAnimation.getKeyFrame(renderStateTime, false);
+            case WON:
+                currentFrame = winAnimation.getKeyFrame(renderStateTime, true);
                 break;
         }
 
@@ -129,11 +131,18 @@ public class Fighter {
             position.x += movementDirection.x * MOVEMENT_SPEED * deltaTime;
             position.y += movementDirection.y * MOVEMENT_SPEED * deltaTime;
         } else if ((state == State.PUNCH && punchAnimation.isAnimationFinished(stateTime)) ||
-                (state == State.KICK && kickAnimation.isAnimationFinished(stateTime))) {
+                (state == State.KICK && kickAnimation.isAnimationFinished(stateTime)) ||
+                (state == State.HURT && hurtAnimation.isAnimationFinished(stateTime))) {
             changeState(movementDirection.x != 0 || movementDirection.y != 0 ? State.WALK : State.IDLE);
         }
 
         keepWithinRingBounds();
+
+        if (isWithinContactDistance(opponent)) {
+            if (isAttacking() && !madeContact) {
+                hit(opponent);
+            }
+        }
     }
 
     private void keepWithinRingBounds() {
@@ -153,11 +162,15 @@ public class Fighter {
         }
     }
 
-    public boolean isHigherThanOpponent(Fighter opponent) {
+    public boolean isHigherThanOpponent(@NotNull Fighter opponent) {
         return position.y > opponent.position.y;
     }
 
-    public void startMoveDirection(Direction direction) {
+    public void startMoveDirection(@NotNull Direction direction) {
+        if (state == State.WON || state == State.LOST) {
+            return;
+        }
+
         if (direction.getValue().x != 0) {
             movementDirection.x = direction.getValue().x;
         }
@@ -170,7 +183,7 @@ public class Fighter {
         }
     }
 
-    public void stopMoveDirection(Direction direction) {
+    public void stopMoveDirection(@NotNull Direction direction) {
         Vector2 dirValue = direction.getValue();
         movementDirection.x = (movementDirection.x == dirValue.x) ? 0 : movementDirection.x;
         movementDirection.y = (movementDirection.y == dirValue.y) ? 0 : movementDirection.y;
@@ -197,17 +210,58 @@ public class Fighter {
     public void punch() {
         if (state == State.IDLE || state == State.WALK) {
             changeState(State.PUNCH);
+            madeContact = false;
         }
     }
 
     public void kick() {
         if (state == State.IDLE || state == State.WALK) {
             changeState(State.KICK);
+            madeContact = false;
         }
+    }
+
+    private boolean isAttackActive() {
+        if (madeContact) {
+            return false;
+        }
+
+        if (state == State.PUNCH) {
+            return stateTime > punchAnimation.getAnimationDuration() * 0.33f &&
+                    stateTime < punchAnimation.getAnimationDuration() * 0.66f;
+        } else if (state == State.KICK) {
+            return stateTime > kickAnimation.getAnimationDuration() * 0.33f &&
+                    stateTime < kickAnimation.getAnimationDuration() * 0.66f;
+        } else {
+            return false;
+        }
+    }
+
+    public void hit(@NotNull Fighter opponent) {
+        if (!isAttackActive() || opponent.state == State.LOST) {
+            return;
+        }
+
+        opponent.life -= opponent.state == State.BLOCK ? HIT_STRENGTH * BLOCK_DAMAGE_FACTOR : HIT_STRENGTH;
+        System.out.println("Opponent life: " + opponent.life);
+
+        if (opponent.life <= 0) {
+            opponent.life = 0;
+            opponent.changeState(State.LOST);
+            changeState(State.WON);
+        } else if (opponent.state != State.BLOCK) {
+            opponent.changeState(State.HURT);
+        }
+        madeContact = true;
     }
 
     public boolean isAttacking() {
         return state == State.PUNCH || state == State.KICK;
+    }
+
+    public boolean isWithinContactDistance(@NotNull Fighter opponent) {
+        return Math.abs(position.x - opponent.position.x) <= FIGHTER_CONTACT_DISTANCE_X &&
+                Math.abs(position.y - opponent.position.y) <= FIGHTER_CONTACT_DISTANCE_Y;
     }
 
     private void changeState(State newState) {
@@ -232,32 +286,6 @@ public class Fighter {
         return frames;
     }
 
-    private enum State {
-        BLOCK,
-        HURT,
-        IDLE,
-        KICK,
-        LOSE,
-        PUNCH,
-        WALK,
-        WIN,
-    }
-
-    private enum Facing {
-        LEFT(-1),
-        RIGHT(1);
-
-        private final int value;
-
-        Facing(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
     public enum Direction {
         LEFT(new Vector2(-1, 0)),
         RIGHT(new Vector2(1, 0)),
@@ -271,6 +299,32 @@ public class Fighter {
         }
 
         public Vector2 getValue() {
+            return value;
+        }
+    }
+
+    private enum State {
+        BLOCK,
+        HURT,
+        IDLE,
+        KICK,
+        LOST,
+        PUNCH,
+        WALK,
+        WON,
+    }
+
+    private enum Facing {
+        LEFT(-1),
+        RIGHT(1);
+
+        private final int value;
+
+        Facing(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
             return value;
         }
     }
