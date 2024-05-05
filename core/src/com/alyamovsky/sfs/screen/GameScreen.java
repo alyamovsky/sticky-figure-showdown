@@ -103,15 +103,15 @@ public class GameScreen implements Screen, InputProcessor {
     @Override
     public boolean keyDown(int keycode) {
         if (keycode == com.badlogic.gdx.Input.Keys.W) {
-            player1.move(Fighter.Direction.UP);
+            player1.startMoveDirection(Fighter.Direction.UP);
         } else if (keycode == com.badlogic.gdx.Input.Keys.S) {
-            player1.move(Fighter.Direction.DOWN);
+            player1.startMoveDirection(Fighter.Direction.DOWN);
         }
 
         if (keycode == com.badlogic.gdx.Input.Keys.A) {
-            player1.move(Fighter.Direction.LEFT);
+            player1.startMoveDirection(Fighter.Direction.LEFT);
         } else if (keycode == com.badlogic.gdx.Input.Keys.D) {
-            player1.move(Fighter.Direction.RIGHT);
+            player1.startMoveDirection(Fighter.Direction.RIGHT);
         }
 
         return true;
@@ -120,15 +120,15 @@ public class GameScreen implements Screen, InputProcessor {
     @Override
     public boolean keyUp(int keycode) {
         if (keycode == com.badlogic.gdx.Input.Keys.W) {
-            player1.stop(Fighter.Direction.UP);
+            player1.stopMoveDirection(Fighter.Direction.UP);
         } else if (keycode == com.badlogic.gdx.Input.Keys.S) {
-            player1.stop(Fighter.Direction.DOWN);
+            player1.stopMoveDirection(Fighter.Direction.DOWN);
         }
 
         if (keycode == com.badlogic.gdx.Input.Keys.A) {
-            player1.stop(Fighter.Direction.LEFT);
+            player1.stopMoveDirection(Fighter.Direction.LEFT);
         } else if (keycode == com.badlogic.gdx.Input.Keys.D) {
-            player1.stop(Fighter.Direction.RIGHT);
+            player1.stopMoveDirection(Fighter.Direction.RIGHT);
         }
 
         return true;

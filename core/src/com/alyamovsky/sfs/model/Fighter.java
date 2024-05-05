@@ -131,14 +131,20 @@ public class Fighter {
         }
     }
 
-    public void move(Direction direction) {
-        movementDirection.set(direction.getValue());
+    public void startMoveDirection(Direction direction) {
+        if (direction.getValue().x != 0) {
+            movementDirection.x = direction.getValue().x;
+        }
+        if (direction.getValue().y != 0) {
+            movementDirection.y = direction.getValue().y;
+        }
+
         if (state != State.WALK) {
             changeState(State.WALK);
         }
     }
 
-    public void stop(Direction direction) {
+    public void stopMoveDirection(Direction direction) {
         Vector2 dirValue = direction.getValue();
         movementDirection.x = (movementDirection.x == dirValue.x) ? 0 : movementDirection.x;
         movementDirection.y = (movementDirection.y == dirValue.y) ? 0 : movementDirection.y;
