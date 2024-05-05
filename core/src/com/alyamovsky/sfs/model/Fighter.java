@@ -129,6 +129,29 @@ public class Fighter {
             position.x += movementDirection.x * MOVEMENT_SPEED * deltaTime;
             position.y += movementDirection.y * MOVEMENT_SPEED * deltaTime;
         }
+
+        keepWithinRingBounds();
+    }
+
+    private void keepWithinRingBounds() {
+        if (position.y < Constants.RING_MIN_Y) {
+            position.y = Constants.RING_MIN_Y;
+        } else if (position.y > Constants.RING_MAX_Y) {
+            position.y = Constants.RING_MAX_Y;
+        }
+
+        double minX = Constants.RING_MIN_X + position.y / Constants.RING_SLOPE;
+        double maxX = Constants.RING_MAX_X + position.y / -Constants.RING_SLOPE;
+
+        if (position.x < minX) {
+            position.x = (float) minX;
+        } else if (position.x > maxX) {
+            position.x = (float) maxX;
+        }
+    }
+
+    public boolean isHigherThanOpponent(Fighter opponent) {
+        return position.y > opponent.position.y;
     }
 
     public void startMoveDirection(Direction direction) {

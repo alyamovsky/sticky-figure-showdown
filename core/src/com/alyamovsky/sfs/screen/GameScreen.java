@@ -14,11 +14,6 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class GameScreen implements Screen, InputProcessor {
-    private static final float PLAYER_1_START_POSITION_X = 16f;
-    private static final float PLAYER_1_START_POSITION_Y = 15f;
-    private static final float PLAYER_2_START_POSITION_X = 51f;
-    private static final float PLAYER_2_START_POSITION_Y = 15f;
-
     private final SFS sfs;
     private final Viewport viewport;
     private Texture backgroundTexture;
@@ -35,8 +30,8 @@ public class GameScreen implements Screen, InputProcessor {
         );
 
         createGameArea();
-        player1.getReady(PLAYER_1_START_POSITION_X, PLAYER_1_START_POSITION_Y);
-        player2.getReady(PLAYER_2_START_POSITION_X, PLAYER_2_START_POSITION_Y);
+        player1.getReady(Constants.PLAYER_1_START_POSITION_X, Constants.PLAYER_1_START_POSITION_Y);
+        player2.getReady(Constants.PLAYER_2_START_POSITION_X, Constants.PLAYER_2_START_POSITION_Y);
     }
 
     private void createGameArea() {
@@ -71,12 +66,23 @@ public class GameScreen implements Screen, InputProcessor {
                 backgroundTexture.getHeight() * Constants.WORLD_SCALE
         );
         renderFighters();
+        sfs.batch.draw(frontRopesTexture,
+                0,
+                0,
+                frontRopesTexture.getWidth() * Constants.WORLD_SCALE,
+                frontRopesTexture.getHeight() * Constants.WORLD_SCALE
+        );
         sfs.batch.end();
     }
 
     private void renderFighters() {
-        player1.render(sfs.batch);
-        player2.render(sfs.batch);
+        if (player1.isHigherThanOpponent(player2)) {
+            player1.render(sfs.batch);
+            player2.render(sfs.batch);
+        } else {
+            player2.render(sfs.batch);
+            player1.render(sfs.batch);
+        }
     }
 
     @Override
