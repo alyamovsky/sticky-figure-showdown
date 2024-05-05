@@ -128,6 +128,9 @@ public class Fighter {
         if (state == State.WALK) {
             position.x += movementDirection.x * MOVEMENT_SPEED * deltaTime;
             position.y += movementDirection.y * MOVEMENT_SPEED * deltaTime;
+        } else if ((state == State.PUNCH && punchAnimation.isAnimationFinished(stateTime)) ||
+                (state == State.KICK && kickAnimation.isAnimationFinished(stateTime))) {
+            changeState(movementDirection.x != 0 || movementDirection.y != 0 ? State.WALK : State.IDLE);
         }
 
         keepWithinRingBounds();
@@ -171,6 +174,40 @@ public class Fighter {
         Vector2 dirValue = direction.getValue();
         movementDirection.x = (movementDirection.x == dirValue.x) ? 0 : movementDirection.x;
         movementDirection.y = (movementDirection.y == dirValue.y) ? 0 : movementDirection.y;
+    }
+
+    public void block() {
+        changeState(State.BLOCK);
+    }
+
+    public void unblock() {
+        if (state == State.BLOCK) {
+            if (movementDirection.x != 0 || movementDirection.y != 0) {
+                changeState(State.WALK);
+            } else {
+                changeState(State.IDLE);
+            }
+        }
+    }
+
+    public boolean isBlocking() {
+        return state == State.BLOCK;
+    }
+
+    public void punch() {
+        if (state == State.IDLE || state == State.WALK) {
+            changeState(State.PUNCH);
+        }
+    }
+
+    public void kick() {
+        if (state == State.IDLE || state == State.WALK) {
+            changeState(State.KICK);
+        }
+    }
+
+    public boolean isAttacking() {
+        return state == State.PUNCH || state == State.KICK;
     }
 
     private void changeState(State newState) {

@@ -5,6 +5,7 @@ import com.alyamovsky.sfs.model.Fighter;
 import com.alyamovsky.sfs.resource.Assets;
 import com.alyamovsky.sfs.resource.Constants;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -108,6 +109,10 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
+        if (keycode == Input.Keys.COMMA) {
+            player1.block();
+        }
+
         if (keycode == com.badlogic.gdx.Input.Keys.W) {
             player1.startMoveDirection(Fighter.Direction.UP);
         } else if (keycode == com.badlogic.gdx.Input.Keys.S) {
@@ -120,11 +125,25 @@ public class GameScreen implements Screen, InputProcessor {
             player1.startMoveDirection(Fighter.Direction.RIGHT);
         }
 
+        if (keycode == com.badlogic.gdx.Input.Keys.N) {
+            player1.punch();
+        } else if (keycode == com.badlogic.gdx.Input.Keys.M) {
+            player1.kick();
+        }
+
+        if (keycode == Input.Keys.ESCAPE) {
+            Gdx.app.exit();
+        }
+
         return true;
     }
 
     @Override
     public boolean keyUp(int keycode) {
+        if (keycode == Input.Keys.COMMA) {
+            player1.unblock();
+        }
+
         if (keycode == com.badlogic.gdx.Input.Keys.W) {
             player1.stopMoveDirection(Fighter.Direction.UP);
         } else if (keycode == com.badlogic.gdx.Input.Keys.S) {
