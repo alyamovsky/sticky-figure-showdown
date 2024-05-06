@@ -15,7 +15,7 @@ public class Fighter {
     private static final int FRAME_ROWS = 2;
     private static final int FRAME_COLUMNS = 3;
     private static final float MOVEMENT_SPEED = 10f;
-    private static final float MAX_LIFE = 100f;
+    public static final float MAX_LIFE = 100f;
     private static final float HIT_STRENGTH = 5f;
     private static final float BLOCK_DAMAGE_FACTOR = 0.2f;
     private static final float FIGHTER_CONTACT_DISTANCE_X = 7.5f;
@@ -29,7 +29,7 @@ public class Fighter {
     private float renderStateTime;
     private final Vector2 position = new Vector2();
     private final Vector2 movementDirection = new Vector2();
-    private float life;
+    private float health;
     private Facing facing;
     private boolean madeContact = false;
 
@@ -61,7 +61,7 @@ public class Fighter {
         stateTime = renderStateTime = 0f;
         position.set(x, y);
         movementDirection.setZero();
-        life = MAX_LIFE;
+        health = MAX_LIFE;
         madeContact = false;
         facing = Facing.RIGHT;
     }
@@ -162,6 +162,18 @@ public class Fighter {
         }
     }
 
+    public float getHealth() {
+        return health;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
     public boolean isHigherThanOpponent(@NotNull Fighter opponent) {
         return position.y > opponent.position.y;
     }
@@ -187,6 +199,10 @@ public class Fighter {
         Vector2 dirValue = direction.getValue();
         movementDirection.x = (movementDirection.x == dirValue.x) ? 0 : movementDirection.x;
         movementDirection.y = (movementDirection.y == dirValue.y) ? 0 : movementDirection.y;
+
+        if (movementDirection.x == 0 && movementDirection.y == 0) {
+            changeState(State.IDLE);
+        }
     }
 
     public void block() {
@@ -242,11 +258,11 @@ public class Fighter {
             return;
         }
 
-        opponent.life -= opponent.state == State.BLOCK ? HIT_STRENGTH * BLOCK_DAMAGE_FACTOR : HIT_STRENGTH;
-        System.out.println("Opponent life: " + opponent.life);
+        opponent.health -= opponent.state == State.BLOCK ? HIT_STRENGTH * BLOCK_DAMAGE_FACTOR : HIT_STRENGTH;
+        System.out.println("Opponent life: " + opponent.health);
 
-        if (opponent.life <= 0) {
-            opponent.life = 0;
+        if (opponent.health <= 0) {
+            opponent.health = 0;
             opponent.changeState(State.LOST);
             changeState(State.WON);
         } else if (opponent.state != State.BLOCK) {

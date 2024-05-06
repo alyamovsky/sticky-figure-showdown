@@ -11,6 +11,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -33,6 +34,7 @@ public class GameScreen implements Screen, InputProcessor {
     private int roundsLost = 0;
     private final float roundTimer = MAX_ROUND_TIME;
     private static final Color DEFAULT_FONT_COLOR = Color.WHITE;
+    private static final Color HEALTH_BAR_COLOR = Color.RED;
     private static final Color HEALTH_BAR_BACKGROUND_COLOR = Constants.COLOR_GOLD;
 
     public GameScreen(SFS sfs) {
@@ -74,6 +76,7 @@ public class GameScreen implements Screen, InputProcessor {
 
     private void renderHud() {
         float hudMargin = 1f;
+        sfs.batch.begin();
         smallFont.draw(sfs.batch,
                 "WINS: " + roundsWon + " - " + roundsLost,
                 hudMargin,
@@ -89,6 +92,49 @@ public class GameScreen implements Screen, InputProcessor {
                 Align.right,
                 false
         );
+        sfs.batch.end();
+
+        float healthBarPadding = 0.5f;
+        float healthBarHeight = smallFont.getCapHeight() + healthBarPadding * 2f;
+        float healthBarMaxWidth = 32f;
+        float healthBarBackgroundPadding = 0.2f;
+        float healthBarBackgroundHeight = healthBarHeight + healthBarBackgroundPadding * 2;
+        float healthBarBackgroundWidth = healthBarMaxWidth + healthBarPadding * 2;
+        float healthBarBackgroundMarginTop = 0.8f;
+        float healthBarBackgroundPositionY =
+                viewport.getWorldHeight() - hudMargin - smallFont.getCapHeight() - healthBarBackgroundMarginTop -
+                        healthBarBackgroundHeight;
+        float healthBarPositionY = healthBarBackgroundPositionY + healthBarBackgroundPadding;
+        float fighterNamePositionY = healthBarPositionY + healthBarHeight - healthBarPadding;
+
+        sfs.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        sfs.shapeRenderer.setColor(HEALTH_BAR_BACKGROUND_COLOR);
+        sfs.shapeRenderer.rect(hudMargin,
+                healthBarBackgroundPositionY,
+                healthBarBackgroundWidth,
+                healthBarBackgroundHeight
+        );
+        sfs.shapeRenderer.rect(viewport.getWorldWidth() - hudMargin - healthBarBackgroundWidth,
+                healthBarBackgroundPositionY,
+                healthBarBackgroundWidth,
+                healthBarBackgroundHeight
+        );
+
+        sfs.shapeRenderer.setColor(HEALTH_BAR_COLOR);
+        sfs.shapeRenderer.rect(hudMargin + healthBarPadding,
+                healthBarPositionY,
+                healthBarMaxWidth * player1.getHealth() / Fighter.MAX_LIFE,
+                healthBarHeight
+        );
+
+        float opponentHealthBar = healthBarMaxWidth * player2.getHealth() / Fighter.MAX_LIFE;
+        sfs.shapeRenderer.rect(viewport.getWorldWidth() - hudMargin - healthBarPadding - opponentHealthBar,
+                healthBarPositionY,
+                opponentHealthBar,
+                healthBarHeight
+        );
+
+        sfs.shapeRenderer.end();
     }
 
     public void update(float delta) {
@@ -108,6 +154,8 @@ public class GameScreen implements Screen, InputProcessor {
         update(delta);
 
         sfs.batch.setProjectionMatrix(viewport.getCamera().combined);
+        sfs.shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+
         sfs.batch.begin();
         sfs.batch.draw(backgroundTexture,
                 0,
@@ -116,7 +164,11 @@ public class GameScreen implements Screen, InputProcessor {
                 backgroundTexture.getHeight() * Constants.WORLD_SCALE
         );
         renderFighters();
+
+        sfs.batch.end();
         renderHud();
+
+        sfs.batch.begin();
         sfs.batch.draw(frontRopesTexture,
                 0,
                 0,
