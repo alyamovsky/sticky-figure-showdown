@@ -98,8 +98,8 @@ public class GameScreen implements Screen, InputProcessor {
         float healthBarHeight = smallFont.getCapHeight() + healthBarPadding * 2f;
         float healthBarMaxWidth = 32f;
         float healthBarBackgroundPadding = 0.2f;
-        float healthBarBackgroundHeight = healthBarHeight + healthBarBackgroundPadding * 2;
-        float healthBarBackgroundWidth = healthBarMaxWidth + healthBarPadding * 2;
+        float healthBarBackgroundHeight = healthBarHeight + healthBarBackgroundPadding * 2f;
+        float healthBarBackgroundWidth = healthBarMaxWidth + healthBarBackgroundPadding * 2f;
         float healthBarBackgroundMarginTop = 0.8f;
         float healthBarBackgroundPositionY =
                 viewport.getWorldHeight() - hudMargin - smallFont.getCapHeight() - healthBarBackgroundMarginTop -
@@ -121,14 +121,15 @@ public class GameScreen implements Screen, InputProcessor {
         );
 
         sfs.shapeRenderer.setColor(HEALTH_BAR_COLOR);
-        sfs.shapeRenderer.rect(hudMargin + healthBarPadding,
+        sfs.shapeRenderer.rect(hudMargin + healthBarBackgroundPadding,
                 healthBarPositionY,
                 healthBarMaxWidth * player1.getHealth() / Fighter.MAX_LIFE,
                 healthBarHeight
         );
 
         float opponentHealthBar = healthBarMaxWidth * player2.getHealth() / Fighter.MAX_LIFE;
-        sfs.shapeRenderer.rect(viewport.getWorldWidth() - hudMargin - healthBarPadding - opponentHealthBar,
+        sfs.shapeRenderer.rect(
+                viewport.getWorldWidth() - hudMargin - healthBarBackgroundPadding - opponentHealthBar,
                 healthBarPositionY,
                 opponentHealthBar,
                 healthBarHeight
