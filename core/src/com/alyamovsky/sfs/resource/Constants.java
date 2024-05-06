@@ -1,5 +1,7 @@
 package com.alyamovsky.sfs.resource;
 
+import com.badlogic.gdx.graphics.Color;
+
 public class Constants {
     public static final String GAME_TITLE = "Sticky Figure Showdown";
     public static final float WORLD_WIDTH = 80f;
@@ -18,4 +20,23 @@ public class Constants {
     public static final float RING_MAX_Y = 21f;
     private static final float RING_SLOPE_DEGREES = 75.0f;
     public static final float RING_SLOPE = (float) Math.tan(Math.toRadians(Constants.RING_SLOPE_DEGREES));
+
+    public static final Color COLOR_GOLD = new Color(0.94f, 0.85f, 0.32f, 1f);
+    public static final float MAX_ROUND_TIME = 60.0f;
+
+    public enum Difficulty {
+        EASY("Easy"),
+        MEDIUM("Medium"),
+        HARD("Hard");
+
+        private final String name;
+
+        Difficulty(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
 }

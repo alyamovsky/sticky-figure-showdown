@@ -10,17 +10,30 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
+import static com.alyamovsky.sfs.resource.Constants.MAX_ROUND_TIME;
 
 public class GameScreen implements Screen, InputProcessor {
     private final SFS sfs;
     private final Viewport viewport;
     private Texture backgroundTexture;
     private Texture frontRopesTexture;
+    private final BitmapFont smallFont;
+    private BitmapFont mediumFont;
+    private BitmapFont largeFont;
     public Fighter player1;
     public Fighter player2;
+    private Constants.Difficulty difficulty = Constants.Difficulty.EASY;
+    private int roundsWon = 0;
+    private int roundsLost = 0;
+    private final float roundTimer = MAX_ROUND_TIME;
+    private static final Color DEFAULT_FONT_COLOR = Color.WHITE;
+    private static final Color HEALTH_BAR_BACKGROUND_COLOR = Constants.COLOR_GOLD;
 
     public GameScreen(SFS sfs) {
         this.sfs = sfs;
@@ -31,6 +44,23 @@ public class GameScreen implements Screen, InputProcessor {
         );
 
         createGameArea();
+
+        // TODO: refactor this
+        smallFont = sfs.assets.manager.get(Assets.SMALL_FONT);
+        smallFont.getData().setScale(Constants.WORLD_SCALE);
+        smallFont.setColor(DEFAULT_FONT_COLOR);
+        smallFont.setUseIntegerPositions(false);
+
+        mediumFont = sfs.assets.manager.get(Assets.MEDIUM_FONT);
+        mediumFont.getData().setScale(Constants.WORLD_SCALE);
+        mediumFont.setColor(DEFAULT_FONT_COLOR);
+        mediumFont.setUseIntegerPositions(false);
+
+        largeFont = sfs.assets.manager.get(Assets.LARGE_FONT);
+        largeFont.getData().setScale(Constants.WORLD_SCALE);
+        largeFont.setColor(DEFAULT_FONT_COLOR);
+        largeFont.setUseIntegerPositions(false);
+
         player1.getReady(Constants.PLAYER_1_START_POSITION_X, Constants.PLAYER_1_START_POSITION_Y);
         player2.getReady(Constants.PLAYER_2_START_POSITION_X, Constants.PLAYER_2_START_POSITION_Y);
     }
@@ -40,6 +70,25 @@ public class GameScreen implements Screen, InputProcessor {
         frontRopesTexture = sfs.assets.manager.get(Assets.FRONT_ROPES_TEXTURE);
         player1 = new Fighter(sfs.assets.manager, "Player", new Color(1f, 0.2f, 0.2f, 1f));
         player2 = new Fighter(sfs.assets.manager, "Opponent", new Color(0.25f, 0.7f, 1f, 1f));
+    }
+
+    private void renderHud() {
+        float hudMargin = 1f;
+        smallFont.draw(sfs.batch,
+                "WINS: " + roundsWon + " - " + roundsLost,
+                hudMargin,
+                viewport.getWorldHeight() - hudMargin
+        );
+
+        String difficulty = "DIFFICULTY: " + this.difficulty.getName().toUpperCase();
+        smallFont.draw(sfs.batch,
+                difficulty,
+                viewport.getWorldWidth() - hudMargin,
+                viewport.getWorldHeight() - hudMargin,
+                0,
+                Align.right,
+                false
+        );
     }
 
     public void update(float delta) {
@@ -67,6 +116,7 @@ public class GameScreen implements Screen, InputProcessor {
                 backgroundTexture.getHeight() * Constants.WORLD_SCALE
         );
         renderFighters();
+        renderHud();
         sfs.batch.draw(frontRopesTexture,
                 0,
                 0,
