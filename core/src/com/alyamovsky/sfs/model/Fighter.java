@@ -179,10 +179,6 @@ public class Fighter {
     }
 
     public void startMoveDirection(@NotNull Direction direction) {
-        if (state == State.WON || state == State.LOST) {
-            return;
-        }
-
         if (direction.getValue().x != 0) {
             movementDirection.x = direction.getValue().x;
         }
@@ -281,6 +277,9 @@ public class Fighter {
     }
 
     private void changeState(State newState) {
+        if (state == State.WON || state == State.LOST) {
+            return;
+        }
         state = newState;
         stateTime = 0f;
     }

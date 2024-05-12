@@ -17,6 +17,8 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.Locale;
+
 import static com.alyamovsky.sfs.resource.Constants.MAX_ROUND_TIME;
 
 public class GameScreen implements Screen, InputProcessor {
@@ -134,8 +136,32 @@ public class GameScreen implements Screen, InputProcessor {
                 opponentHealthBar,
                 healthBarHeight
         );
-
         sfs.shapeRenderer.end();
+
+        sfs.batch.begin();
+        smallFont.draw(sfs.batch,
+                player1.getName(),
+                hudMargin + healthBarBackgroundPadding + healthBarPadding,
+                fighterNamePositionY
+        );
+        smallFont.draw(sfs.batch,
+                player2.getName(),
+                viewport.getWorldWidth() - hudMargin - healthBarBackgroundPadding - healthBarPadding,
+                fighterNamePositionY,
+                0,
+                Align.right,
+                false
+        );
+
+        mediumFont.draw(sfs.batch,
+                String.format(Locale.getDefault(), "%02d", (int) roundTimer),
+                viewport.getWorldWidth() / 2,
+                viewport.getWorldHeight() - hudMargin,
+                0,
+                Align.center,
+                false
+        );
+        sfs.batch.end();
     }
 
     public void update(float delta) {
