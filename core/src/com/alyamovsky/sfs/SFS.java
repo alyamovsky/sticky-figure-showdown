@@ -40,5 +40,6 @@ public class SFS extends Game {
     public enum GameState {
         IN_PROGRESS,
         OVER,
+        PAUSE,
     }
 }

@@ -48,6 +48,8 @@ public class GameScreen implements Screen, InputProcessor {
     private SFS.GameState gameState = SFS.GameState.IN_PROGRESS;
     private Sprite playAgainButton;
     private Sprite mainMenuButton;
+    private Sprite continueButton;
+    private Sprite pauseButton;
 
     public GameScreen(SFS sfs) {
         this.sfs = sfs;
@@ -59,7 +61,7 @@ public class GameScreen implements Screen, InputProcessor {
 
         createGameArea();
         createFonts();
-        createMenuButtons();
+        createButtons();
 
         getReady();
     }
@@ -72,6 +74,14 @@ public class GameScreen implements Screen, InputProcessor {
         initialEndDelay = 2.0f;
         player1.getReady(Constants.PLAYER_1_START_POSITION_X, Constants.PLAYER_1_START_POSITION_Y);
         player2.getReady(Constants.PLAYER_2_START_POSITION_X, Constants.PLAYER_2_START_POSITION_Y);
+    }
+
+    private void pauseGame() {
+        gameState = SFS.GameState.PAUSE;
+    }
+
+    private void resumeGame() {
+        gameState = SFS.GameState.IN_PROGRESS;
     }
 
     private void createFonts() {
@@ -98,11 +108,13 @@ public class GameScreen implements Screen, InputProcessor {
         player2 = new Fighter(sfs.assets.manager, "Opponent", new Color(0.25f, 0.7f, 1f, 1f));
     }
 
-    private void createMenuButtons() {
+    private void createButtons() {
         TextureAtlas buttonsAtlas = sfs.assets.manager.get(Assets.GAMEPLAY_BUTTONS_ATLAS);
 
         playAgainButton = prepareSprite(buttonsAtlas, "PlayAgainButton");
         mainMenuButton = prepareSprite(buttonsAtlas, "MainMenuButton");
+        continueButton = prepareSprite(buttonsAtlas, "ContinueButton");
+        pauseButton = prepareSprite(buttonsAtlas, "PauseButton");
     }
 
     private Sprite prepareSprite(TextureAtlas atlas, String regionName) {
@@ -263,7 +275,7 @@ public class GameScreen implements Screen, InputProcessor {
     public void render(float delta) {
         ScreenUtils.clear(0, 0, 0, 1);
 
-        update(delta);
+        update(gameState == SFS.GameState.IN_PROGRESS ? delta : 0);
 
         sfs.batch.setProjectionMatrix(viewport.getCamera().combined);
         sfs.shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
@@ -303,23 +315,32 @@ public class GameScreen implements Screen, InputProcessor {
                 frontRopesTexture.getHeight() * Constants.WORLD_SCALE
         );
 
+        sfs.batch.end();
         if (gameState == SFS.GameState.OVER) {
-            sfs.batch.end();
             renderGameOverMenu();
+        } else {
+            renderPauseButton();
+        }
+        sfs.batch.begin();
+
+        if (gameState == SFS.GameState.PAUSE) {
+            sfs.batch.end();
+            renderPauseMenu();
             sfs.batch.begin();
         }
 
         sfs.batch.end();
     }
 
+    private void renderPauseButton() {
+        pauseButton.setPosition(viewport.getWorldWidth() - 1f - pauseButton.getWidth(), 1f);
+        sfs.batch.begin();
+        pauseButton.draw(sfs.batch);
+        sfs.batch.end();
+    }
+
     private void renderGameOverMenu() {
-        Gdx.gl.glEnable(Gdx.gl.GL_BLEND);
-        Gdx.gl.glBlendFunc(Gdx.gl.GL_SRC_ALPHA, Gdx.gl.GL_ONE_MINUS_SRC_ALPHA);
-        sfs.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        sfs.shapeRenderer.setColor(0, 0, 0, 0.5f);
-        sfs.shapeRenderer.rect(0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
-        sfs.shapeRenderer.end();
-        Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
+        darkenTheScreen();
 
         sfs.batch.begin();
 
@@ -333,6 +354,42 @@ public class GameScreen implements Screen, InputProcessor {
         );
         playAgainButton.draw(sfs.batch);
         String text = "YOU " + (roundsWon > roundsLost ? "WIN!" : "LOSE!");
+        largeFont.draw(sfs.batch,
+                text,
+                viewport.getWorldWidth() / 2,
+                viewport.getWorldHeight() / 2 + mainMenuButton.getHeight() + largeFont.getCapHeight(),
+                0,
+                Align.center,
+                false
+        );
+        sfs.batch.end();
+    }
+
+    private void darkenTheScreen() {
+        Gdx.gl.glEnable(Gdx.gl.GL_BLEND);
+        Gdx.gl.glBlendFunc(Gdx.gl.GL_SRC_ALPHA, Gdx.gl.GL_ONE_MINUS_SRC_ALPHA);
+        sfs.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        sfs.shapeRenderer.setColor(0, 0, 0, 0.5f);
+        sfs.shapeRenderer.rect(0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+        sfs.shapeRenderer.end();
+        Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
+    }
+
+    private void renderPauseMenu() {
+        darkenTheScreen();
+
+        sfs.batch.begin();
+
+        mainMenuButton.setPosition(viewport.getWorldWidth() / 2 - mainMenuButton.getWidth() / 2,
+                viewport.getWorldHeight() / 2 - mainMenuButton.getHeight() / 2 + 0.5f
+        );
+        mainMenuButton.draw(sfs.batch);
+
+        continueButton.setPosition(viewport.getWorldWidth() / 2 - continueButton.getWidth() / 2,
+                viewport.getWorldHeight() / 2 - continueButton.getHeight() - continueButton.getHeight() / 2
+        );
+        continueButton.draw(sfs.batch);
+        String text = "PAUSED";
         largeFont.draw(sfs.batch,
                 text,
                 viewport.getWorldWidth() / 2,
@@ -361,6 +418,9 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public void pause() {
+        if (gameState == SFS.GameState.IN_PROGRESS) {
+            pauseGame();
+        }
     }
 
     @Override
@@ -379,6 +439,14 @@ public class GameScreen implements Screen, InputProcessor {
     public boolean keyDown(int keycode) {
         if (keycode == Input.Keys.ESCAPE) {
             Gdx.app.exit();
+        }
+
+        if (keycode == Input.Keys.P) {
+            if (gameState == SFS.GameState.IN_PROGRESS) {
+                pauseGame();
+            } else if (gameState == SFS.GameState.PAUSE) {
+                resumeGame();
+            }
         }
 
         if (initialStartDelay > 0) {
@@ -454,6 +522,15 @@ public class GameScreen implements Screen, InputProcessor {
 
         if (initialStartDelay > 0) {
             initialStartDelay = 0;
+        }
+
+        if (pauseButton.getBoundingRectangle().contains(position.x, position.y)) {
+            pauseGame();
+        }
+
+        if (gameState == SFS.GameState.PAUSE &&
+                continueButton.getBoundingRectangle().contains(position.x, position.y)) {
+            resumeGame();
         }
 
         if (gameState == SFS.GameState.OVER) {
