@@ -2,6 +2,7 @@ package com.alyamovsky.sfs.resource;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
+import com.badlogic.gdx.assets.loaders.TextureLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -51,16 +52,20 @@ public class Assets {
     }
 
     private void loadGameplayAssets() {
-        manager.load(BACKGROUND_TEXTURE, Texture.class);
-        manager.load(FRONT_ROPES_TEXTURE, Texture.class);
-        manager.load(IDLE_SPRITE_SHEET, Texture.class);
-        manager.load(WALK_SPRITE_SHEET, Texture.class);
-        manager.load(PUNCH_SPRITE_SHEET, Texture.class);
-        manager.load(KICK_SPRITE_SHEET, Texture.class);
-        manager.load(HURT_SPRITE_SHEET, Texture.class);
-        manager.load(BLOCK_SPRITE_SHEET, Texture.class);
-        manager.load(WIN_SPRITE_SHEET, Texture.class);
-        manager.load(LOSE_SPRITE_SHEET, Texture.class);
+        TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
+        textureParameter.minFilter = Texture.TextureFilter.Linear;
+        textureParameter.magFilter = Texture.TextureFilter.Linear;
+
+        manager.load(BACKGROUND_TEXTURE, Texture.class, textureParameter);
+        manager.load(FRONT_ROPES_TEXTURE, Texture.class, textureParameter);
+        manager.load(IDLE_SPRITE_SHEET, Texture.class, textureParameter);
+        manager.load(WALK_SPRITE_SHEET, Texture.class, textureParameter);
+        manager.load(PUNCH_SPRITE_SHEET, Texture.class, textureParameter);
+        manager.load(KICK_SPRITE_SHEET, Texture.class, textureParameter);
+        manager.load(HURT_SPRITE_SHEET, Texture.class, textureParameter);
+        manager.load(BLOCK_SPRITE_SHEET, Texture.class, textureParameter);
+        manager.load(WIN_SPRITE_SHEET, Texture.class, textureParameter);
+        manager.load(LOSE_SPRITE_SHEET, Texture.class, textureParameter);
         manager.load(GAMEPLAY_BUTTONS_ATLAS, TextureAtlas.class);
         manager.load(BLOOD_ATLAS, TextureAtlas.class);
     }

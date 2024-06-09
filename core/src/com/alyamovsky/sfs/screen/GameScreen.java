@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -27,14 +28,18 @@ public class GameScreen implements Screen, InputProcessor {
     private Texture backgroundTexture;
     private Texture frontRopesTexture;
     private final BitmapFont smallFont;
-    private BitmapFont mediumFont;
-    private BitmapFont largeFont;
+    private final BitmapFont mediumFont;
+    private final BitmapFont largeFont;
     public Fighter player1;
     public Fighter player2;
     private Constants.Difficulty difficulty = Constants.Difficulty.EASY;
     private int roundsWon = 0;
     private int roundsLost = 0;
-    private final float roundTimer = MAX_ROUND_TIME;
+    private int maxRounds = 3;
+    private float roundTimer = MAX_ROUND_TIME;
+    private static final float PAUSE_BETWEEN_ROUNDS = 2.0f;
+    float initialStartDelay = 2.0f;
+    float initialEndDelay = 2.0f;
     private static final Color DEFAULT_FONT_COLOR = Color.WHITE;
     private static final Color HEALTH_BAR_COLOR = Color.RED;
     private static final Color HEALTH_BAR_BACKGROUND_COLOR = Constants.COLOR_GOLD;
@@ -84,6 +89,21 @@ public class GameScreen implements Screen, InputProcessor {
                 hudMargin,
                 viewport.getWorldHeight() - hudMargin
         );
+
+        if (initialStartDelay > 0) {
+            String text = "ROUND " + (roundsWon + roundsLost + 1);
+            if (initialStartDelay < PAUSE_BETWEEN_ROUNDS / 2) {
+                text = "GET READY!";
+            }
+            largeFont.draw(sfs.batch,
+                    text,
+                    viewport.getWorldWidth() / 2,
+                    viewport.getWorldHeight() / 2,
+                    0,
+                    Align.center,
+                    false
+            );
+        }
 
         String difficulty = "DIFFICULTY: " + this.difficulty.getName().toUpperCase();
         smallFont.draw(sfs.batch,
@@ -155,18 +175,60 @@ public class GameScreen implements Screen, InputProcessor {
 
         mediumFont.draw(sfs.batch,
                 String.format(Locale.getDefault(), "%02d", (int) roundTimer),
-                viewport.getWorldWidth() / 2,
-                viewport.getWorldHeight() - hudMargin,
-                0,
-                Align.center,
-                false
+                viewport.getWorldWidth() / 2 - mediumFont.getSpaceXadvance() * 2.3f,
+                viewport.getWorldHeight() - hudMargin
         );
         sfs.batch.end();
     }
 
-    public void update(float delta) {
+    private void update(float delta) {
+        handleRoundState(delta);
         player1.update(delta, player2);
         player2.update(delta, player1);
+    }
+
+    private void handleRoundState(float delta) {
+        if (initialStartDelay > 0) {
+            initialStartDelay -= delta;
+            player1.waitToStart();
+            player2.waitToStart();
+            return;
+        }
+
+        if (roundTimer <= 0 || player1.getHealth() <= 0 || player2.getHealth() <= 0) {
+            if (player1.getHealth() > player2.getHealth()) {
+                player1.celebrate();
+            } else {
+                player2.celebrate();
+            }
+            if (initialEndDelay > 0) {
+                initialEndDelay -= delta;
+                return;
+            }
+
+            endRound();
+        } else {
+            roundTimer -= delta;
+        }
+    }
+
+    private void endRound() {
+        if (player1.getHealth() > player2.getHealth()) {
+            roundsWon++;
+        } else {
+            roundsLost++;
+        }
+
+        if (roundsWon > maxRounds / 2 || roundsLost > maxRounds / 2) {
+            Gdx.app.exit(); // for now
+        }
+
+        initialStartDelay = PAUSE_BETWEEN_ROUNDS;
+        initialEndDelay = PAUSE_BETWEEN_ROUNDS;
+        roundTimer = MAX_ROUND_TIME;
+
+        player1.getReady(Constants.PLAYER_1_START_POSITION_X, Constants.PLAYER_1_START_POSITION_Y);
+        player2.getReady(Constants.PLAYER_2_START_POSITION_X, Constants.PLAYER_2_START_POSITION_Y);
     }
 
     @Override
@@ -238,6 +300,10 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
+        if (initialStartDelay > 0) {
+            initialStartDelay = 0;
+        }
+
         if (keycode == Input.Keys.COMMA) {
             player1.block();
         }
@@ -295,7 +361,14 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
+        Vector3 position = new Vector3(screenX, screenY, 0);
+        viewport.getCamera().unproject(position, viewport.getScreenX(), viewport.getScreenY(), viewport.getScreenWidth(), viewport.getScreenHeight());
+
+        if (initialStartDelay > 0) {
+            initialStartDelay = 0;
+        }
+
+        return true;
     }
 
     @Override

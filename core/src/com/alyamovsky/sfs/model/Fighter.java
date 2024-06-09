@@ -119,6 +119,10 @@ public class Fighter {
             return;
         }
 
+        if (health <= 0 && state != State.LOST) {
+            changeState(State.LOST);
+        }
+
         renderState = state;
         renderStateTime = stateTime;
         if (opponent.position.x > position.x) {
@@ -201,6 +205,18 @@ public class Fighter {
         }
     }
 
+    public void waitToStart() {
+        if (state != State.IDLE) {
+            changeState(State.IDLE);
+        }
+    }
+
+    public void celebrate() {
+        if (state != State.WON) {
+            changeState(State.WON);
+        }
+    }
+
     public void block() {
         changeState(State.BLOCK);
     }
@@ -257,11 +273,7 @@ public class Fighter {
         opponent.health -= opponent.state == State.BLOCK ? HIT_STRENGTH * BLOCK_DAMAGE_FACTOR : HIT_STRENGTH;
         System.out.println("Opponent life: " + opponent.health);
 
-        if (opponent.health <= 0) {
-            opponent.health = 0;
-            opponent.changeState(State.LOST);
-            changeState(State.WON);
-        } else if (opponent.state != State.BLOCK) {
+        if (opponent.state != State.BLOCK) {
             opponent.changeState(State.HURT);
         }
         madeContact = true;
@@ -269,6 +281,10 @@ public class Fighter {
 
     public boolean isAttacking() {
         return state == State.PUNCH || state == State.KICK;
+    }
+
+    public boolean isWonOrLost() {
+        return state == State.WON || state == State.LOST;
     }
 
     public boolean isWithinContactDistance(@NotNull Fighter opponent) {
