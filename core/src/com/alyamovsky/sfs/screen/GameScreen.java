@@ -11,6 +11,8 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Align;
@@ -27,9 +29,9 @@ public class GameScreen implements Screen, InputProcessor {
     private final Viewport viewport;
     private Texture backgroundTexture;
     private Texture frontRopesTexture;
-    private final BitmapFont smallFont;
-    private final BitmapFont mediumFont;
-    private final BitmapFont largeFont;
+    private BitmapFont smallFont;
+    private BitmapFont mediumFont;
+    private BitmapFont largeFont;
     public Fighter player1;
     public Fighter player2;
     private Constants.Difficulty difficulty = Constants.Difficulty.EASY;
@@ -43,6 +45,9 @@ public class GameScreen implements Screen, InputProcessor {
     private static final Color DEFAULT_FONT_COLOR = Color.WHITE;
     private static final Color HEALTH_BAR_COLOR = Color.RED;
     private static final Color HEALTH_BAR_BACKGROUND_COLOR = Constants.COLOR_GOLD;
+    private SFS.GameState gameState = SFS.GameState.IN_PROGRESS;
+    private Sprite playAgainButton;
+    private Sprite mainMenuButton;
 
     public GameScreen(SFS sfs) {
         this.sfs = sfs;
@@ -53,8 +58,14 @@ public class GameScreen implements Screen, InputProcessor {
         );
 
         createGameArea();
+        createFonts();
+        createMenuButtons();
 
-        // TODO: refactor this
+        player1.getReady(Constants.PLAYER_1_START_POSITION_X, Constants.PLAYER_1_START_POSITION_Y);
+        player2.getReady(Constants.PLAYER_2_START_POSITION_X, Constants.PLAYER_2_START_POSITION_Y);
+    }
+
+    private void createFonts() {
         smallFont = sfs.assets.manager.get(Assets.SMALL_FONT);
         smallFont.getData().setScale(Constants.WORLD_SCALE);
         smallFont.setColor(DEFAULT_FONT_COLOR);
@@ -69,9 +80,6 @@ public class GameScreen implements Screen, InputProcessor {
         largeFont.getData().setScale(Constants.WORLD_SCALE);
         largeFont.setColor(DEFAULT_FONT_COLOR);
         largeFont.setUseIntegerPositions(false);
-
-        player1.getReady(Constants.PLAYER_1_START_POSITION_X, Constants.PLAYER_1_START_POSITION_Y);
-        player2.getReady(Constants.PLAYER_2_START_POSITION_X, Constants.PLAYER_2_START_POSITION_Y);
     }
 
     private void createGameArea() {
@@ -79,6 +87,21 @@ public class GameScreen implements Screen, InputProcessor {
         frontRopesTexture = sfs.assets.manager.get(Assets.FRONT_ROPES_TEXTURE);
         player1 = new Fighter(sfs.assets.manager, "Player", new Color(1f, 0.2f, 0.2f, 1f));
         player2 = new Fighter(sfs.assets.manager, "Opponent", new Color(0.25f, 0.7f, 1f, 1f));
+    }
+
+    private void createMenuButtons() {
+        TextureAtlas buttonsAtlas = sfs.assets.manager.get(Assets.GAMEPLAY_BUTTONS_ATLAS);
+
+        playAgainButton = prepareSprite(buttonsAtlas, "PlayAgainButton");
+        mainMenuButton = prepareSprite(buttonsAtlas, "MainMenuButton");
+    }
+
+    private Sprite prepareSprite(TextureAtlas atlas, String regionName) {
+        Sprite sprite = new Sprite(atlas.findRegion(regionName));
+
+        sprite.setSize(sprite.getWidth() * Constants.WORLD_SCALE, sprite.getHeight() * Constants.WORLD_SCALE);
+
+        return sprite;
     }
 
     private void renderHud() {
@@ -89,21 +112,6 @@ public class GameScreen implements Screen, InputProcessor {
                 hudMargin,
                 viewport.getWorldHeight() - hudMargin
         );
-
-        if (initialStartDelay > 0) {
-            String text = "ROUND " + (roundsWon + roundsLost + 1);
-            if (initialStartDelay < PAUSE_BETWEEN_ROUNDS / 2) {
-                text = "GET READY!";
-            }
-            largeFont.draw(sfs.batch,
-                    text,
-                    viewport.getWorldWidth() / 2,
-                    viewport.getWorldHeight() / 2,
-                    0,
-                    Align.center,
-                    false
-            );
-        }
 
         String difficulty = "DIFFICULTY: " + this.difficulty.getName().toUpperCase();
         smallFont.draw(sfs.batch,
@@ -220,7 +228,7 @@ public class GameScreen implements Screen, InputProcessor {
         }
 
         if (roundsWon > maxRounds / 2 || roundsLost > maxRounds / 2) {
-            Gdx.app.exit(); // for now
+            gameState = SFS.GameState.OVER;
         }
 
         initialStartDelay = PAUSE_BETWEEN_ROUNDS;
@@ -258,13 +266,45 @@ public class GameScreen implements Screen, InputProcessor {
         renderHud();
 
         sfs.batch.begin();
+        if (initialStartDelay > 0 && gameState == SFS.GameState.IN_PROGRESS) {
+            String text = "ROUND " + (roundsWon + roundsLost + 1);
+            if (initialStartDelay < PAUSE_BETWEEN_ROUNDS / 2) {
+                text = "GET READY!";
+            }
+            largeFont.draw(sfs.batch,
+                    text,
+                    viewport.getWorldWidth() / 2,
+                    viewport.getWorldHeight() / 2,
+                    0,
+                    Align.center,
+                    false
+            );
+        }
+
         sfs.batch.draw(frontRopesTexture,
                 0,
                 0,
                 frontRopesTexture.getWidth() * Constants.WORLD_SCALE,
                 frontRopesTexture.getHeight() * Constants.WORLD_SCALE
         );
+
+        if (gameState == SFS.GameState.OVER) {
+            sfs.batch.end();
+            renderGameOverMenu();
+            sfs.batch.begin();
+        }
+
         sfs.batch.end();
+    }
+
+    private void renderGameOverMenu() {
+        Gdx.gl.glEnable(Gdx.gl.GL_BLEND);
+        Gdx.gl.glBlendFunc(Gdx.gl.GL_SRC_ALPHA, Gdx.gl.GL_ONE_MINUS_SRC_ALPHA);
+        sfs.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        sfs.shapeRenderer.setColor(0, 0, 0, 0.5f);
+        sfs.shapeRenderer.rect(0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+        sfs.shapeRenderer.end();
+        Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
     }
 
     private void renderFighters() {
@@ -362,7 +402,12 @@ public class GameScreen implements Screen, InputProcessor {
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Vector3 position = new Vector3(screenX, screenY, 0);
-        viewport.getCamera().unproject(position, viewport.getScreenX(), viewport.getScreenY(), viewport.getScreenWidth(), viewport.getScreenHeight());
+        viewport.getCamera().unproject(position,
+                viewport.getScreenX(),
+                viewport.getScreenY(),
+                viewport.getScreenWidth(),
+                viewport.getScreenHeight()
+        );
 
         if (initialStartDelay > 0) {
             initialStartDelay = 0;

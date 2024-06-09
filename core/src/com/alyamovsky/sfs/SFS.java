@@ -36,4 +36,9 @@ public class SFS extends Game {
         shapeRenderer.dispose();
         assets.dispose();
     }
+
+    public enum GameState {
+        IN_PROGRESS,
+        OVER,
+    }
 }
