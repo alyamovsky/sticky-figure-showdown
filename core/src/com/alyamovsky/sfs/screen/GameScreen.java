@@ -35,13 +35,13 @@ public class GameScreen implements Screen, InputProcessor {
     public Fighter player1;
     public Fighter player2;
     private Constants.Difficulty difficulty = Constants.Difficulty.EASY;
-    private int roundsWon = 0;
-    private int roundsLost = 0;
+    private int roundsWon;
+    private int roundsLost;
     private int maxRounds = 3;
-    private float roundTimer = MAX_ROUND_TIME;
+    private float roundTimer;
     private static final float PAUSE_BETWEEN_ROUNDS = 2.0f;
-    float initialStartDelay = 2.0f;
-    float initialEndDelay = 2.0f;
+    float initialStartDelay;
+    float initialEndDelay;
     private static final Color DEFAULT_FONT_COLOR = Color.WHITE;
     private static final Color HEALTH_BAR_COLOR = Color.RED;
     private static final Color HEALTH_BAR_BACKGROUND_COLOR = Constants.COLOR_GOLD;
@@ -61,6 +61,15 @@ public class GameScreen implements Screen, InputProcessor {
         createFonts();
         createMenuButtons();
 
+        getReady();
+    }
+
+    private void getReady() {
+        roundsWon = 0;
+        roundsLost = 0;
+        roundTimer = MAX_ROUND_TIME;
+        initialStartDelay = 2.0f;
+        initialEndDelay = 2.0f;
         player1.getReady(Constants.PLAYER_1_START_POSITION_X, Constants.PLAYER_1_START_POSITION_Y);
         player2.getReady(Constants.PLAYER_2_START_POSITION_X, Constants.PLAYER_2_START_POSITION_Y);
     }
@@ -182,7 +191,7 @@ public class GameScreen implements Screen, InputProcessor {
         );
 
         mediumFont.draw(sfs.batch,
-                String.format(Locale.getDefault(), "%02d", (int) roundTimer),
+                String.format(Locale.getDefault(), "%02d", (int) Math.ceil(roundTimer)),
                 viewport.getWorldWidth() / 2 - mediumFont.getSpaceXadvance() * 2.3f,
                 viewport.getWorldHeight() - hudMargin
         );
@@ -196,6 +205,10 @@ public class GameScreen implements Screen, InputProcessor {
     }
 
     private void handleRoundState(float delta) {
+        if (gameState == SFS.GameState.OVER) {
+            return;
+        }
+
         if (initialStartDelay > 0) {
             initialStartDelay -= delta;
             player1.waitToStart();
@@ -229,6 +242,8 @@ public class GameScreen implements Screen, InputProcessor {
 
         if (roundsWon > maxRounds / 2 || roundsLost > maxRounds / 2) {
             gameState = SFS.GameState.OVER;
+
+            return;
         }
 
         initialStartDelay = PAUSE_BETWEEN_ROUNDS;
@@ -305,6 +320,28 @@ public class GameScreen implements Screen, InputProcessor {
         sfs.shapeRenderer.rect(0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
         sfs.shapeRenderer.end();
         Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
+
+        sfs.batch.begin();
+
+        mainMenuButton.setPosition(viewport.getWorldWidth() / 2 - mainMenuButton.getWidth() / 2,
+                viewport.getWorldHeight() / 2 - mainMenuButton.getHeight() / 2 + 0.5f
+        );
+        mainMenuButton.draw(sfs.batch);
+
+        playAgainButton.setPosition(viewport.getWorldWidth() / 2 - playAgainButton.getWidth() / 2,
+                viewport.getWorldHeight() / 2 - mainMenuButton.getHeight() - playAgainButton.getHeight() / 2
+        );
+        playAgainButton.draw(sfs.batch);
+        String text = "YOU " + (roundsWon > roundsLost ? "WIN!" : "LOSE!");
+        largeFont.draw(sfs.batch,
+                text,
+                viewport.getWorldWidth() / 2,
+                viewport.getWorldHeight() / 2 + mainMenuButton.getHeight() + largeFont.getCapHeight(),
+                0,
+                Align.center,
+                false
+        );
+        sfs.batch.end();
     }
 
     private void renderFighters() {
@@ -340,14 +377,24 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
+        if (keycode == Input.Keys.ESCAPE) {
+            Gdx.app.exit();
+        }
+
         if (initialStartDelay > 0) {
             initialStartDelay = 0;
+        }
+
+        // player can move only if the game is in progress
+        if (roundTimer <= 0 || player1.getHealth() <= 0 || player2.getHealth() <= 0) {
+            return false;
         }
 
         if (keycode == Input.Keys.COMMA) {
             player1.block();
         }
 
+        // TODO: stop player movement if the game is over
         if (keycode == com.badlogic.gdx.Input.Keys.W) {
             player1.startMoveDirection(Fighter.Direction.UP);
         } else if (keycode == com.badlogic.gdx.Input.Keys.S) {
@@ -364,10 +411,6 @@ public class GameScreen implements Screen, InputProcessor {
             player1.punch();
         } else if (keycode == com.badlogic.gdx.Input.Keys.M) {
             player1.kick();
-        }
-
-        if (keycode == Input.Keys.ESCAPE) {
-            Gdx.app.exit();
         }
 
         return true;
@@ -411,6 +454,13 @@ public class GameScreen implements Screen, InputProcessor {
 
         if (initialStartDelay > 0) {
             initialStartDelay = 0;
+        }
+
+        if (gameState == SFS.GameState.OVER) {
+            if (playAgainButton.getBoundingRectangle().contains(position.x, position.y)) {
+                gameState = SFS.GameState.IN_PROGRESS;
+                getReady();
+            }
         }
 
         return true;

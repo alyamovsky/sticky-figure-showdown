@@ -22,7 +22,7 @@ public class Constants {
     public static final float RING_SLOPE = (float) Math.tan(Math.toRadians(Constants.RING_SLOPE_DEGREES));
 
     public static final Color COLOR_GOLD = new Color(0.94f, 0.85f, 0.32f, 1f);
-    public static final float MAX_ROUND_TIME = 10.0f;
+    public static final float MAX_ROUND_TIME = 60.0f;
 
     public enum Difficulty {
         EASY("Easy"),
