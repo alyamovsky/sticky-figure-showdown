@@ -324,6 +324,10 @@ public class Fighter {
         return frames;
     }
 
+    public Vector2 getPosition() {
+        return position;
+    }
+
     public enum Direction {
         LEFT(new Vector2(-1, 0)),
         RIGHT(new Vector2(1, 0)),

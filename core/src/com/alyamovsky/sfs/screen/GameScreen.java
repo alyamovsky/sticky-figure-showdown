@@ -1,5 +1,6 @@
 package com.alyamovsky.sfs.screen;
 
+import com.alyamovsky.sfs.ai.Ai;
 import com.alyamovsky.sfs.SFS;
 import com.alyamovsky.sfs.model.Fighter;
 import com.alyamovsky.sfs.resource.Assets;
@@ -51,6 +52,8 @@ public class GameScreen implements Screen, InputProcessor {
     private Sprite continueButton;
     private Sprite pauseButton;
 
+    private Ai opponentAi;
+
     public GameScreen(SFS sfs) {
         this.sfs = sfs;
         this.viewport = new ExtendViewport(Constants.WORLD_WIDTH,
@@ -63,6 +66,7 @@ public class GameScreen implements Screen, InputProcessor {
         createFonts();
         createButtons();
 
+        opponentAi = new Ai(player2, player1);
         getReady();
     }
 
@@ -212,6 +216,7 @@ public class GameScreen implements Screen, InputProcessor {
 
     private void update(float delta) {
         handleRoundState(delta);
+        opponentAi.manage(delta);
         player1.update(delta, player2);
         player2.update(delta, player1);
     }
