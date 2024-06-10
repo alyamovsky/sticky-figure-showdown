@@ -1,6 +1,7 @@
 package com.alyamovsky.sfs.model;
 
 import com.alyamovsky.sfs.resource.Assets;
+import com.alyamovsky.sfs.resource.AudioManager;
 import com.alyamovsky.sfs.resource.Constants;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
@@ -42,7 +43,10 @@ public class Fighter {
     private final Animation<TextureRegion> walkAnimation;
     private final Animation<TextureRegion> winAnimation;
 
-    public Fighter(AssetManager assetManager, String name, Color color) {
+    private final AudioManager audioManager;
+
+    public Fighter(AssetManager assetManager, AudioManager audioManager, String name, Color color) {
+        this.audioManager = audioManager;
         this.name = name;
         this.color = color;
 
@@ -273,8 +277,11 @@ public class Fighter {
         opponent.health -= opponent.state == State.BLOCK ? HIT_STRENGTH * BLOCK_DAMAGE_FACTOR : HIT_STRENGTH;
         System.out.println("Opponent life: " + opponent.health);
 
-        if (opponent.state != State.BLOCK) {
+        if (!opponent.isBlocking()) {
+            audioManager.playSound(Assets.HIT_SOUND);
             opponent.changeState(State.HURT);
+        } else {
+            audioManager.playSound(Assets.BLOCK_SOUND);
         }
         madeContact = true;
     }

@@ -104,8 +104,8 @@ public class GameScreen implements Screen, InputProcessor {
     private void createGameArea() {
         backgroundTexture = sfs.assets.manager.get(Assets.BACKGROUND_TEXTURE);
         frontRopesTexture = sfs.assets.manager.get(Assets.FRONT_ROPES_TEXTURE);
-        player1 = new Fighter(sfs.assets.manager, "Player", new Color(1f, 0.2f, 0.2f, 1f));
-        player2 = new Fighter(sfs.assets.manager, "Opponent", new Color(0.25f, 0.7f, 1f, 1f));
+        player1 = new Fighter(sfs.assets.manager, sfs.audioManager, "Player", new Color(1f, 0.2f, 0.2f, 1f));
+        player2 = new Fighter(sfs.assets.manager, sfs.audioManager, "Opponent", new Color(0.25f, 0.7f, 1f, 1f));
     }
 
     private void createButtons() {
@@ -231,8 +231,10 @@ public class GameScreen implements Screen, InputProcessor {
         if (roundTimer <= 0 || player1.getHealth() <= 0 || player2.getHealth() <= 0) {
             if (player1.getHealth() > player2.getHealth()) {
                 player1.celebrate();
+                sfs.audioManager.playSound(Assets.CHEER_SOUND);
             } else {
                 player2.celebrate();
+                sfs.audioManager.playSound(Assets.BOO_SOUND);
             }
             if (initialEndDelay > 0) {
                 initialEndDelay -= delta;
@@ -318,7 +320,7 @@ public class GameScreen implements Screen, InputProcessor {
         sfs.batch.end();
         if (gameState == SFS.GameState.OVER) {
             renderGameOverMenu();
-        } else {
+        } else if (gameState == SFS.GameState.IN_PROGRESS) {
             renderPauseButton();
         }
         sfs.batch.begin();
@@ -420,11 +422,15 @@ public class GameScreen implements Screen, InputProcessor {
     public void pause() {
         if (gameState == SFS.GameState.IN_PROGRESS) {
             pauseGame();
+            sfs.audioManager.pauseSounds();
+            sfs.audioManager.pauseMusic();
         }
     }
 
     @Override
     public void resume() {
+        sfs.audioManager.resumeSounds();
+        sfs.audioManager.playMusic();
     }
 
     @Override
@@ -447,6 +453,10 @@ public class GameScreen implements Screen, InputProcessor {
             } else if (gameState == SFS.GameState.PAUSE) {
                 resumeGame();
             }
+        }
+
+        if (keycode == Input.Keys.J) {
+            sfs.audioManager.toggleMusic();
         }
 
         if (initialStartDelay > 0) {
@@ -524,12 +534,15 @@ public class GameScreen implements Screen, InputProcessor {
             initialStartDelay = 0;
         }
 
-        if (pauseButton.getBoundingRectangle().contains(position.x, position.y)) {
+        if (gameState == SFS.GameState.IN_PROGRESS &&
+                pauseButton.getBoundingRectangle().contains(position.x, position.y)) {
+            sfs.audioManager.playSound(Assets.CLICK_SOUND);
             pauseGame();
         }
 
         if (gameState == SFS.GameState.PAUSE &&
                 continueButton.getBoundingRectangle().contains(position.x, position.y)) {
+            sfs.audioManager.playSound(Assets.CLICK_SOUND);
             resumeGame();
         }
 
