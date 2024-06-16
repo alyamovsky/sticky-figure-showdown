@@ -199,6 +199,13 @@ public class Fighter {
         }
     }
 
+    public void stop() {
+        movementDirection.setZero();
+        if (state == State.WALK) {
+            changeState(State.IDLE);
+        }
+    }
+
     public void stopMoveDirection(@NotNull Direction direction) {
         Vector2 dirValue = direction.getValue();
         movementDirection.x = (movementDirection.x == dirValue.x) ? 0 : movementDirection.x;

@@ -2,6 +2,7 @@ package com.alyamovsky.sfs.screen;
 
 import com.alyamovsky.sfs.ai.Ai;
 import com.alyamovsky.sfs.SFS;
+import com.alyamovsky.sfs.ai.Difficulty;
 import com.alyamovsky.sfs.model.Fighter;
 import com.alyamovsky.sfs.resource.Assets;
 import com.alyamovsky.sfs.resource.Constants;
@@ -35,7 +36,7 @@ public class GameScreen implements Screen, InputProcessor {
     private BitmapFont largeFont;
     public Fighter player1;
     public Fighter player2;
-    private Constants.Difficulty difficulty = Constants.Difficulty.EASY;
+    private Difficulty difficulty = Difficulty.EASY;
     private int roundsWon;
     private int roundsLost;
     private int maxRounds = 3;
@@ -52,7 +53,7 @@ public class GameScreen implements Screen, InputProcessor {
     private Sprite continueButton;
     private Sprite pauseButton;
 
-    private Ai opponentAi;
+    private final Ai opponentAi;
 
     public GameScreen(SFS sfs) {
         this.sfs = sfs;
@@ -66,7 +67,7 @@ public class GameScreen implements Screen, InputProcessor {
         createFonts();
         createButtons();
 
-        opponentAi = new Ai(player2, player1);
+        opponentAi = new Ai(player2, player1, difficulty);
         getReady();
     }
 

@@ -23,20 +23,4 @@ public class Constants {
 
     public static final Color COLOR_GOLD = new Color(0.94f, 0.85f, 0.32f, 1f);
     public static final float MAX_ROUND_TIME = 60.0f;
-
-    public enum Difficulty {
-        EASY("Easy"),
-        MEDIUM("Medium"),
-        HARD("Hard");
-
-        private final String name;
-
-        Difficulty(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
 }
